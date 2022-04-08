@@ -1,5 +1,15 @@
 // Contract based on https://docs.openzeppelin.com/contracts/3.x/erc721
 // SPDX-License-Identifier: MIT
+
+// After deployment
+// - npm run generate -> upload image to pinata -> get images folder ipfs address
+// - npm run update_info -> update ipfs address in json -> upload json folder to pinata
+// - upload unpack image to pinata
+// - create unpack.json -> upload unpack.json to pinata
+// - call contract "setNotRevealedURL" -> ipfs://{IPFS_UNPACK_JSON_ADDRESS}
+// - call contract "setBaseURL" -> ipfs//{IPFS_JSON_ADDRESS}/
+// - call contract "flipSaleActive"
+
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -15,7 +25,7 @@ contract RobotNFT is ERC721Enumerable, Ownable {
     // Constants
     uint256 public constant MAX_SUPPLY = 300;
     uint256 public mintPrice = 0.06 ether;
-    uint256 public maxBalance = 1;
+    uint256 public maxBalance = 10;
     uint256 public maxMint = 10;
 
     string baseURI;
@@ -31,12 +41,12 @@ contract RobotNFT is ERC721Enumerable, Ownable {
         setNotRevealedURI(initNotRevealedUri);
     }
 
-    function mintNicMeta(uint256 tokenQuantity) public payable {
+    function mint(uint256 tokenQuantity) public payable {
         require(
             totalSupply() + tokenQuantity <= MAX_SUPPLY,
             "Sale would exceed max supply"
         );
-        require(_isSaleActive, "Sale must be active to mint NicMetas");
+        require(_isSaleActive, "Sale must be active to mint Robot NFT");
         require(
             balanceOf(msg.sender) + tokenQuantity <= maxBalance,
             "Sale would exceed max balance"
@@ -47,10 +57,10 @@ contract RobotNFT is ERC721Enumerable, Ownable {
         );
         require(tokenQuantity <= maxMint, "Can only mint 1 tokens at a time");
 
-        _mintNicMeta(tokenQuantity);
+        _mint(tokenQuantity);
     }
 
-    function _mintNicMeta(uint256 tokenQuantity) internal {
+    function _mint(uint256 tokenQuantity) internal {
         for (uint256 i = 0; i < tokenQuantity; i++) {
             uint256 mintIndex = totalSupply();
             if (totalSupply() < MAX_SUPPLY) {
